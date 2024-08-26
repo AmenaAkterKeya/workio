@@ -14,6 +14,7 @@ urlpatterns = [
     path('card/<int:pk>/', views.CardDetail.as_view(), name='card-detail'),
     path('board/<int:board_id>/list/<int:list_id>/', views.ListUpdateDeleteView.as_view(), name='list-update-delete'),
      path('board/member/<int:pk>/', views.MemberDetailView.as_view(), name='member-detail'),
+     path('board/<int:pk>/addmember/', views.AddBoardMemberView.as_view(), name='member'),
      path('list/<int:list_id>/card/', views.CardCreateView.as_view({'post': 'create'}), name='create-card'),
     
     # path('board/<int:board_id>/lists/create/', views.ListByBoardView.as_view(), name='list-create')
