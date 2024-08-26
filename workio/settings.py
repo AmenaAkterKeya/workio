@@ -28,12 +28,12 @@ SECRET_KEY = 'django-insecure-oy3+abfigprf$om!$4-50d+(0((0mt!@i@24e#=%b2cqp4$0bi
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://learnx-ldys.onrender.com','https://*.127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://workio-ypph.onrender.com','https://*.127.0.0.1']
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500',
-    'https://learnx-ldys.onrender.com',
+    'https://workio-ypph.onrender.com',
     
 ]
 
