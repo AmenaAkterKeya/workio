@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
-from .serializers import BoardSerializer, ListSerializer, CardSerializer, AddMemberSerializer,MemberDetailSerializer,MemberAllSerializer
+from .serializers import BoardSerializer,BoarddSerializer, ListSerializer,CarddSerializer, CardSerializer, AddMemberSerializer,MemberDetailSerializer,MemberAllSerializer
 from django.http import Http404
 from rest_framework.exceptions import PermissionDenied
 
@@ -37,11 +37,23 @@ class BoardCreateView(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Check if the number of members exceeds 10
         members_num = serializer.validated_data.get('members_num', 0)
-        if members_num > 10:
+        if members_num  > 10:
             raise ValidationError('You cannot add more than 10 members to a board.')
 
-        # Save the board instance
         serializer.save(owner=self.request.user.customuser)
+class BoarddViewSet(viewsets.ModelViewSet):
+    queryset = Board.objects.all()
+    serializer_class = BoarddSerializer
+
+    def perform_create(self, serializer):
+        members_data = self.request.data.get('members', [])
+        serializer_context = {
+            'request': self.request,
+            'members': members_data,
+        }
+        serializer = self.get_serializer(data=self.request.data, context=serializer_context)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
 class AddBoardMemberView(generics.GenericAPIView):
     serializer_class = AddMemberSerializer
@@ -135,27 +147,99 @@ class ListUpdateDeleteView(APIView):
 
         list_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 class CardCreateView(viewsets.ModelViewSet):
     queryset = Card.objects.all()
     serializer_class = CardSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['list__id']
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
 
     def create(self, request, *args, **kwargs):
-        # Debugging: Log incoming request data
-        print("Request Data:", request.data)
-        return super().create(request, *args, **kwargs) 
+        user = request.user
+        custom_user = user.customuser
+        list_id = request.data.get('list')
+        
+        if not list_id:
+            raise ValidationError("List ID is required.")
+        
+        list_instance = List.objects.get(id=list_id)
+        board = list_instance.board
 
-class CardListByListIdView(generics.ListAPIView):
-    serializer_class = CardSerializer
+        # Check if the user is the board owner or a member of the board
+        if board.owner != custom_user:
+            is_member = Member.objects.filter(board=board, member=custom_user).exists()
+            if not is_member:
+                raise ValidationError("You are not authorized to add a card to this board.")
+
+        return super().create(request, *args, **kwargs)
+# class CardView(viewsets.ModelViewSet):
+#     queryset = Card.objects.all()
+#     serializer_class = CarddSerializer
+#     filter_backends = [filters.SearchFilter]
+#     search_fields = ['list__id']
+
+#     def get_serializer_context(self):
+#         context = super().get_serializer_context()
+#         context['request'] = self.request
+#         return context
+
+#     def create(self, request, *args, **kwargs):
+#         user = request.user
+#         custom_user = user.customuser
+#         list_id = request.data.get('list')
+        
+#         if not list_id:
+#             raise ValidationError("List ID is required.")
+        
+#         list_instance = List.objects.get(id=list_id)
+#         board = list_instance.board
+
+#         # Check if the user is the board owner or a member of the board
+#         if board.owner != custom_user:
+#             is_member = Member.objects.filter(board=board, member=custom_user).exists()
+#             if not is_member:
+#                 raise ValidationError("You are not authorized to add a card to this board.")
+
+#         return super().create(request, *args, **kwargs)
+
+class CardView(viewsets.ModelViewSet):
+    queryset = Card.objects.all()
+    serializer_class = CarddSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['list__id']
 
     def get_queryset(self):
-        list_id = self.kwargs['list_id']
-        return Card.objects.filter(list_id=list_id)
+        user = self.request.user
+        custom_user = user.customuser
+        list_id = self.request.query_params.get('search')
+        
+        if not list_id:
+            return Card.objects.none()  # No list_id, return no cards
+
+        # Get the list and related board
+        list_instance = List.objects.get(id=list_id)
+        board = list_instance.board
+
+        # Check if the user is the board owner or a member
+        if board.owner != custom_user:
+            is_member = Member.objects.filter(board=board, member=custom_user).exists()
+            if not is_member:
+                raise PermissionDenied("You do not have permission to view these cards.")
+
+        # Return cards related to the list
+        return Card.objects.filter(list=list_instance)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context  
+
+
 
 class CardDetail(APIView):
     def get_object(self, pk):
@@ -166,7 +250,7 @@ class CardDetail(APIView):
 
     def get(self, request, pk, format=None):
         card = self.get_object(pk)
-        serializer = CardSerializer(card)
+        serializer = CarddSerializer(card)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):

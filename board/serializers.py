@@ -72,6 +72,35 @@ class BoardSerializer(serializers.ModelSerializer):
         # Set the owner as the logged-in user's CustomUser instance
         validated_data['owner'] = custom_user
         return super().create(validated_data)
+class BoarddSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.user.username')
+    members = MemberListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'name', 'owner', 'color', 'members']
+        read_only_fields = ['owner']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+
+        # Check if the user is authenticated
+        if not user.is_authenticated:
+            raise serializers.ValidationError("You must be logged in to create a board.")
+
+        # Set the owner as the logged-in user's CustomUser instance
+        validated_data['owner'] = user.customuser
+
+        # Create the board
+        board = super().create(validated_data)
+        
+        # Add members if provided
+        members_data = self.context.get('members', [])
+        for member_data in members_data:
+            Member.objects.create(board=board, member=member_data['member'])
+
+        return board
 class MemberDetailSerializer(serializers.ModelSerializer):
     boards =BoardSerializer(many=True, read_only=True)  # Include boards
 
@@ -115,45 +144,73 @@ class ListBoardSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content','board']
         
 
-  
-        
+
+
+
+
+
 # class CardSerializer(serializers.ModelSerializer):
+
+  
 #     class Meta:
 #         model = Card
-#         fields = ['id', 'title', 'content', 'board','list','priority','status']
-#         read_only_fields = ['custom_user','member']
+#         fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_members']
 
 #     def create(self, validated_data):
 #         request = self.context.get('request')
-#         custom_user = request.user.customuser
-#         validated_data['custom_user'] = custom_user
-#         return super().create(validated_data)
+#         user = request.user
+#         custom_user = user.customuser
+#         list_instance = validated_data['list']
+#         board = list_instance.board
+
+#         # Check if the user is the board owner
+#         if board.owner != custom_user:
+#             # Check if the user is an assigned member of the board
+#             is_member = Member.objects.filter(board=board, member=custom_user).exists()
+#             if not is_member:
+#                 raise ValidationError("You are not authorized to add a card to this board.")
+
+#         # Create the card if the user has the right permissions
+#         card = Card.objects.create(**validated_data)
+
+#         return card
 class CardSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = Card
-        fields = ['id', 'title', 'content', 'priority', 'status', 'list',]
+        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_members']
+class AssignedMemberSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='member.user.username', read_only=True)  
+
+    class Meta:
+        model = Member
+        fields = ['id', 'username']    
+class CarddSerializer(serializers.ModelSerializer):
+    assign = serializers.PrimaryKeyRelatedField(
+        queryset=Member.objects.all(), write_only=True, many=True
+    )  
+    assigned_member = AssignedMemberSerializer(many=True, read_only=True, source='assigned_members')
+
+    class Meta:
+        model = Card
+        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_member', 'assign']
 
     def create(self, validated_data):
-        request = self.context.get('request')
-        custom_user = request.user  # Get the logged-in user from the request
+        assigned_members_data = validated_data.pop('assigned_members')
+        card = Card.objects.create(**validated_data)
+        card.assigned_members.set(assigned_members_data)
+        return card
+    def update(self, instance, validated_data):
+       
+        assign = validated_data.pop('assign', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
 
-        # You may have logic to handle member if needed
-        member_id = self.context.get('member_id')  # Get member ID from context or request
+      
+        if assign is not None:
+            instance.assigned_members.set(assign)
         
-        # Additional logic for member_id validation or assignment
-        if member_id:
-            try:
-                member = CustomUser.objects.get(id=member_id)
-                # Optionally: Check if the member is part of the board or has any other valid context
-                if not Member.objects.filter(board__members=member, board__owner=custom_user).exists():
-                    raise serializers.ValidationError("You are not authorized to assign this member.")
-            except CustomUser.DoesNotExist:
-                raise serializers.ValidationError("Member does not exist.")
-        
-        # Create and return the Card instance
-        return super().create(validated_data)
-
+        return instance
 class MemberAllSerializer(serializers.ModelSerializer):
     boards = BoardSerializer(source='board', read_only=True)
     lists = serializers.SerializerMethodField()
@@ -164,11 +221,11 @@ class MemberAllSerializer(serializers.ModelSerializer):
         fields = ['id', 'boards', 'lists', 'cards']
 
     def get_lists(self, obj):
-        # Fetch all lists related to the member's board
+   
         lists = List.objects.filter(board=obj.board)
         return ListSerializer(lists, many=True).data
 
     def get_cards(self, obj):
-        # Fetch all cards related to the member's board
+      
         cards = Card.objects.filter(list__board=obj.board)
         return CardSerializer(cards, many=True).data

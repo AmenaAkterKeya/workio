@@ -13,7 +13,8 @@ class Board(models.Model):
 class Member(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='members')
     member = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='board_members')  
-
+    def __str__(self):
+        return self.member.user.username
 class List(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField(blank=True, null=True)
@@ -36,12 +37,14 @@ class Card(models.Model):
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     ]
+    
     title = models.CharField(max_length=100)
     content = models.TextField(blank=True, null=True)
     list = models.ForeignKey(List, on_delete=models.CASCADE, related_name='cards')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
-    def __str__(self):
-        return self.title
+    assigned_members = models.ManyToManyField(Member, related_name='assigned_cards', blank=True, null=True)
+
+
     
 
