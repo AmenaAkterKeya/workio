@@ -258,10 +258,10 @@ class CardDetail(APIView):
         list = card.list
         board = list.board
 
-        if not (request.user == board.owner or request.user in board.members.all()):
+        if not (request.user == board.owner or request.user in card.assigned_members.all()):
             return Response({'detail': 'You do not have permission to edit this card.'}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = CardSerializer(card, data=request.data)
+        serializer = CardSerializer(card, data=request.data, partial=True)  # Allow partial updates
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

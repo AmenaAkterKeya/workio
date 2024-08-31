@@ -78,9 +78,9 @@ def activate(request, uid64, token):
         user.is_active = True
         user.save()
         CustomUser.objects.create(user=user, bio='')
-        return redirect('http://127.0.0.1:5500/logIn.html')
+        return redirect('https://amenaakterkeya.github.io/workio./logIn.html')
     else:
-        return redirect('http://127.0.0.1:5500/singIn.html')
+        return redirect('https://amenaakterkeya.github.io/workio./singIn.html')
     
 
 class UserLoginApiView(APIView):

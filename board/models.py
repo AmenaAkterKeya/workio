@@ -44,7 +44,7 @@ class Card(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     assigned_members = models.ManyToManyField(Member, related_name='assigned_cards', blank=True, null=True)
-
+    due_date = models.DateField(blank=True, null=True)
 
     
 

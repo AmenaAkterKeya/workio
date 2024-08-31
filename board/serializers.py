@@ -177,7 +177,7 @@ class ListBoardSerializer(serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_members']
+        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_members','due_date']
 class AssignedMemberSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='member.user.username', read_only=True)  
 
@@ -192,7 +192,7 @@ class CarddSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Card
-        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_member', 'assign']
+        fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_member', 'assign','due_date']
 
     def create(self, validated_data):
         assigned_members_data = validated_data.pop('assigned_members')
