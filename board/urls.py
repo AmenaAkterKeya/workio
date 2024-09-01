@@ -14,7 +14,6 @@ router.register('allMember', views.MemberListView)
 urlpatterns = [
     path('', include(router.urls)),
     path('card/card/<int:pk>/', views.CardDetail.as_view(), name='card-detail'),
-    # path('cards/<int:pk>/', views.CardDetails.as_view(), name='card-details'),
     path('board/<int:board_id>/list/<int:list_id>/', views.ListUpdateDeleteView.as_view(), name='list-update-delete'),
      path('board/member/<int:pk>/', views.MemberDetailView.as_view(), name='member-detail'),
      path('board/<int:pk>/addmember/', views.AddBoardMemberView.as_view(), name='member'),
