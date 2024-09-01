@@ -213,27 +213,29 @@ class CardView(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['list__id']
 
-    def get_queryset(self):
-        user = self.request.user
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
         custom_user = user.customuser
-        list_id = self.request.query_params.get('search')
+        list_id = request.data.get('list')
         
         if not list_id:
-            return Card.objects.none()  # No list_id, return no cards
-
-        # Get the list and related board
+            raise ValidationError("List ID is required.")
+        
         list_instance = List.objects.get(id=list_id)
         board = list_instance.board
 
-        # Check if the user is the board owner or a member
+        # Check if the user is the board owner or a member of the board
         if board.owner != custom_user:
             is_member = Member.objects.filter(board=board, member=custom_user).exists()
             if not is_member:
-                raise PermissionDenied("You do not have permission to view these cards.")
+                raise ValidationError("You are not authorized to add a card to this board.")
 
-        # Return cards related to the list
-        return Card.objects.filter(list=list_instance)
-
+        return super().create(request, *args, **kwargs)
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
