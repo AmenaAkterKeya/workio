@@ -255,16 +255,24 @@ class CardDetail(APIView):
 
     def put(self, request, pk, format=None):
         card = self.get_object(pk)
-        list = card.list
-        board = list.board
+        list_instance = card.list
+        board = list_instance.board
 
-        if not (request.user == board.owner or request.user in card.assigned_members.all()):
+        
+        custom_user = request.user.customuser
+
+        is_owner = custom_user == board.owner
+
+        is_assigned_member = card.assigned_members.filter(member=custom_user).exists()
+
+        if not (is_owner or is_assigned_member):
             return Response({'detail': 'You do not have permission to edit this card.'}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = CardSerializer(card, data=request.data, partial=True)  # Allow partial updates
+        serializer = CardSerializer(card, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
