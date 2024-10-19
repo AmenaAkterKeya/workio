@@ -37,8 +37,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         account.set_password(password)
         account.is_active = False
         account.save()
-        custom_user = CustomUser(user=account, bio="")  
-        custom_user.save()
         return account
      
 # login       
