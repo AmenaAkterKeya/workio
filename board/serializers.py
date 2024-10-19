@@ -178,6 +178,7 @@ class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
         fields = ['id', 'title', 'content', 'list', 'priority', 'status', 'assigned_members','due_date']
+    
 class AssignedMemberSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='member.user.username', read_only=True)  
 

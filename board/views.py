@@ -3,11 +3,8 @@ from .models import Board, List, Card,Member
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-from django.shortcuts import get_object_or_404
 from .serializers import BoardSerializer,BoarddSerializer, ListSerializer,CarddSerializer, CardSerializer, AddMemberSerializer,MemberDetailSerializer,MemberAllSerializer
 from django.http import Http404
-from rest_framework.exceptions import PermissionDenied
-
 from rest_framework.exceptions import ValidationError
 class BoardCreateView(viewsets.ModelViewSet):
     queryset = Board.objects.all()
@@ -177,35 +174,7 @@ class CardCreateView(viewsets.ModelViewSet):
                 raise ValidationError("You are not authorized to add a card to this board.")
 
         return super().create(request, *args, **kwargs)
-# class CardView(viewsets.ModelViewSet):
-#     queryset = Card.objects.all()
-#     serializer_class = CarddSerializer
-#     filter_backends = [filters.SearchFilter]
-#     search_fields = ['list__id']
 
-#     def get_serializer_context(self):
-#         context = super().get_serializer_context()
-#         context['request'] = self.request
-#         return context
-
-#     def create(self, request, *args, **kwargs):
-#         user = request.user
-#         custom_user = user.customuser
-#         list_id = request.data.get('list')
-        
-#         if not list_id:
-#             raise ValidationError("List ID is required.")
-        
-#         list_instance = List.objects.get(id=list_id)
-#         board = list_instance.board
-
-#         # Check if the user is the board owner or a member of the board
-#         if board.owner != custom_user:
-#             is_member = Member.objects.filter(board=board, member=custom_user).exists()
-#             if not is_member:
-#                 raise ValidationError("You are not authorized to add a card to this board.")
-
-#         return super().create(request, *args, **kwargs)
 
 class CardView(viewsets.ModelViewSet):
     queryset = Card.objects.all()

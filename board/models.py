@@ -1,6 +1,6 @@
 from django.db import models
 from account.models import CustomUser
-from rest_framework.exceptions import ValidationError
+
 # Create your models here.
 class Board(models.Model):
     name = models.CharField(max_length=100)
@@ -43,7 +43,7 @@ class Card(models.Model):
     list = models.ForeignKey(List, on_delete=models.CASCADE, related_name='cards')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='low')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
-    assigned_members = models.ManyToManyField(Member, related_name='assigned_cards', blank=True, null=True)
+    assigned_members = models.ManyToManyField(Member, related_name='assigned_cards', blank=True)
     due_date = models.DateField(blank=True, null=True)
 
     

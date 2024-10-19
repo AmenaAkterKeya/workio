@@ -1,1 +1,4 @@
 workio/.env
+db.sqlite3
+__pycache__/
+workio_env

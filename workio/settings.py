@@ -27,9 +27,10 @@ SECRET_KEY = 'django-insecure-oy3+abfigprf$om!$4-50d+(0((0mt!@i@24e#=%b2cqp4$0bi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://workio-ypph.onrender.com','https://*.127.0.0.1']
+ALLOWED_HOSTS = ["http://127.0.0.1", ".vercel.app"]
+# CSRF_TRUSTED_ORIGINS = ['https://workio-ypph.onrender.com','https://*.127.0.0.1']
 
+CSRF_TRUSTED_ORIGINS = ['"http://127.0.0.1", ".vercel.app"']
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500',
@@ -41,6 +42,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Application definition
 
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,6 +63,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,19 +90,29 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'workio.wsgi.application'
+WSGI_APPLICATION = 'workio.wsgi.app'
 # APPEND_SLASH = False
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.bzhgpwfwljmwaltzpkem',
+        'PASSWORD': 'VmaltB6NvijQUTZl',
+        'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
+        'PORT': '6543'
     }
 }
-
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -142,7 +156,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
