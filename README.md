@@ -38,7 +38,6 @@
 - **Edit and Delete**: Admins can edit and delete lists and cards.
 - **View Board Member Details**: Admins can view details of every board member.
 - **View Total Boards and Members**: Admins can view all boards and all members.
-## Technologies Used
 
 ## API Endpoints
 
