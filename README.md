@@ -68,7 +68,7 @@
    
 2. **Open the Project**:
    ```bash
-   Open the index.html file in your preferred web browser to view the project.
+   Open the `index.html` file in your preferred web browser to view the project.
 
 ## License
 
