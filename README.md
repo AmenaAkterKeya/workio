@@ -104,7 +104,7 @@
    python manage.py runserver
 5. **Run Tests:**:
    ```bash
-   python manage.py test
+   http://localhost:8000/
 The backend server will be accessible at http://localhost:8000/api/.
 
 ## License
