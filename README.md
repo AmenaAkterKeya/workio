@@ -40,6 +40,35 @@
 - **View Total Boards and Members**: Admins can view all boards and all members.
 ## Technologies Used
 
+## API Endpoints
+
+### User Management
+- **POST** `/api/account/register/` - Register a new user.
+- **POST** `/api/account/login/` - User login.
+
+### Board Management
+- **GET** `/api/board/board/` - List all boards.
+- **GET** `/api/board/board/{id}/` - Retrieve a specific board’s details.
+
+### List Management
+- **GET** `/api/board/list/` - Retrieve all lists within boards.
+- **POST** `/api/board/list/` - Add a new list.
+- **PUT** `/api/board/{board_id}/list/{list_id}/` - Update a specific list.
+- **DELETE** `/api/board/{board_id}/list/{list_id}/` - Delete a specific list.
+
+### Card Management
+- **GET** `/api/board/card/` - Retrieve all cards.
+- **POST** `/api/board/list/{list_id}/card/` - Add a new card to a list.
+- **PUT** `/api/board/card/{card_id}/` - Update a specific card.
+- **DELETE** `/api/board/card/{card_id}/` - Delete a specific card.
+
+### Member Management
+- **POST** `/api/board/{board_id}/addmember/` - Add a new member to a board.
+- **GET** `/api/board/member/{board_id}/` - Retrieve members of a board.
+
+---
+## Technologies Used
+
 ### Backend
 - **Python 3.x**: Programming language.
 - **Django**: Web framework for backend development.
@@ -53,22 +82,31 @@
 - **Backend**: [Workio Backend](https://workio-theta.vercel.app/)
 
 ---
-
 ## Installation & Running the App
 
 ### Prerequisites
-- A modern web browser (Chrome, Firefox, Safari, etc.)
+- **Python 3.x**
+- **Django** and **Django REST Framework**
 
 ### Setup
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/username/learnX_frontend.git
-   cd learnX_frontend
-   
-2. **Open the Project**:
+   git clone https://github.com/username/workio.git
+   cd workio
+2. **Install Dependencies:**:
    ```bash
-   Open the `index.html` file in your preferred web browser to view the project.
+   pip install -r requirements.txt
+3. **Run Database Migrations:**:
+   ```bash
+   python manage.py migrate
+4. **Start the Development Server:**:
+   ```bash
+   python manage.py runserver
+5. **Run Tests:**:
+   ```bash
+   python manage.py test
+The backend server will be accessible at http://localhost:8000/api/.
 
 ## License
 
