@@ -93,16 +93,16 @@
    ```bash
    git clone https://github.com/username/workio.git
    cd workio
-2. **Install Dependencies:**:
+2. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
-3. **Run Database Migrations:**:
+3. **Run Database Migrations**:
    ```bash
    python manage.py migrate
-4. **Start the Development Server:**:
+4. **Start the Development Server**:
    ```bash
    python manage.py runserver
-5. **Run Tests:**:
+5. **Run Tests**:
    ```bash
    http://localhost:8000/
 The backend server will be accessible at http://localhost:8000/api/.
