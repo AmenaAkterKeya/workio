@@ -6,6 +6,7 @@ from rest_framework.exceptions import NotFound
 from .serializers import BoardSerializer,BoarddSerializer, ListSerializer,CarddSerializer, CardSerializer, AddMemberSerializer,MemberDetailSerializer,MemberAllSerializer
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
+from collections import defaultdict
 class BoardCreateView(viewsets.ModelViewSet):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
@@ -273,3 +274,35 @@ class MemberListView(viewsets.ModelViewSet):
             queryset = queryset.filter(member__id=customuser_id)
 
         return queryset
+class CardCountView(APIView):
+    def get(self, request, board_id, format=None):
+        try:
+            board = Board.objects.get(id=board_id)
+            card_counts = board.get_card_counts()
+            
+            response_data = {
+                "todo_count": card_counts.get("todo", 0),
+                "in_progress_count": card_counts.get("in_progress", 0),
+                "completed_count": card_counts.get("completed", 0),
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        except Board.DoesNotExist:
+            return Response({'detail': 'Board not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class BoardCountView(APIView):
+    def get(self, request, format=None):
+        status_counts = defaultdict(int)
+        for board in Board.objects.all():
+            for list_instance in board.lists.all():
+                for card in list_instance.cards.all():
+                    status_counts[card.status] += 1
+
+        response_data = {
+            "todo_count": status_counts['todo'],
+            "in_progress_count": status_counts['in_progress'],
+            "completed_count": status_counts['completed']
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

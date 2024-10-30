@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     read_only_fields = ['user']
     class Meta:
         model = CustomUser
-        fields = ['user', 'bio']
+        fields = ['user','designation','phone' ,'bio']
 # registration 
 class RegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(required=True)
