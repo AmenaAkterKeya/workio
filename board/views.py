@@ -7,6 +7,8 @@ from .serializers import BoardSerializer,BoarddSerializer, ListSerializer,CarddS
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
 from collections import defaultdict
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 class BoardCreateView(viewsets.ModelViewSet):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
@@ -58,7 +60,7 @@ class AddBoardMemberView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return None  # This view does not need a queryset
+        return None 
 
     def post(self, request, pk):
         try:
@@ -66,15 +68,24 @@ class AddBoardMemberView(generics.GenericAPIView):
         except Board.DoesNotExist:
             raise ValidationError("Board does not exist.")
 
-        # Ensure the user is either the owner or a member
         if request.user.customuser != board.owner and not Member.objects.filter(board=board, member=request.user.customuser).exists():
             raise ValidationError("You do not have permission to add members to this board.")
 
         serializer = self.get_serializer(data=request.data, context={'board': board})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        member = serializer.save()  
 
+        user_email = member.member.user.email 
+
+        email_subject = "You've been added to a Board!"
+        email_body = render_to_string('invited_email.html', {'board_name': board.name})  
+
+        email = EmailMultiAlternatives(email_subject, '', to=[user_email])
+        email.attach_alternative(email_body, "text/html") 
+        email.send()        
         return Response({"message": "Member added successfully!"})
+
+
 
 class MemberDetailView(generics.GenericAPIView):
     serializer_class = MemberDetailSerializer
@@ -86,7 +97,7 @@ class MemberDetailView(generics.GenericAPIView):
         except Member.DoesNotExist:
             raise NotFound("Member does not exist.")
 
-        # Check if the requesting user is authorized to view this member
+      
         if request.user.customuser != member and not request.user.is_staff:
             raise permissions.PermissionDenied("You do not have permission to view this member.")
 
@@ -104,7 +115,6 @@ class ListCreateView(viewsets.ModelViewSet):
         return context
 
     def create(self, request, *args, **kwargs):
-        # Debugging: Log incoming request data
         print("Request Data:", request.data)
         return super().create(request, *args, **kwargs)
 
@@ -290,11 +300,15 @@ class CardCountView(APIView):
         
         except Board.DoesNotExist:
             return Response({'detail': 'Board not found.'}, status=status.HTTP_404_NOT_FOUND)
-
 class BoardCountView(APIView):
+    permission_classes = [permissions.IsAuthenticated] 
+
     def get(self, request, format=None):
         status_counts = defaultdict(int)
-        for board in Board.objects.all():
+
+        user_boards = Board.objects.filter(owner=request.user.customuser)
+
+        for board in user_boards:
             for list_instance in board.lists.all():
                 for card in list_instance.cards.all():
                     status_counts[card.status] += 1

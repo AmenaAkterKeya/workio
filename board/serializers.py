@@ -23,18 +23,15 @@ class AddMemberSerializer(serializers.Serializer):
         except CustomUser.DoesNotExist:
             raise serializers.ValidationError(f"User with username '{username}' does not exist.")
 
-        # Check if the user is already a member
         if Member.objects.filter(board=board, member=member_user).exists():
             raise serializers.ValidationError(f"User '{username}' is already a member of this board.")
 
-        # Add the member to the board
-        Member.objects.create(board=board, member=member_user)
+        member_instance = Member.objects.create(board=board, member=member_user)
 
-        # Update members_num field
         board.members_num = board.members.count()
         board.save()
 
-        return validated_data
+        return member_instance  
 
 class MemberListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='member.user.username', read_only=True)
